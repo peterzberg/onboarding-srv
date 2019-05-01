@@ -1,20 +1,30 @@
 package ch.css.ebusiness.portal.onboarding.api.model;
 
 public class DocumentCode {
-    private String code;
+    private String ahvNumber;
+    private String documentNumber;
 
-    public String getCode() {
-        return code;
+    public String getAhvNumber() {
+        return ahvNumber;
     }
 
-    public void setCode(String code) {
-        this.code = code;
+    public void setAhvNumber(String ahvNumber) {
+        this.ahvNumber = ahvNumber;
+    }
+
+    public String getDocumentNumber() {
+        return documentNumber;
+    }
+
+    public void setDocumentNumber(String documentNumber) {
+        this.documentNumber = documentNumber;
     }
 
     @Override
     public String toString() {
         return "DocumentCode{" +
-                "code='" + code + '\'' +
+                "ahvNumber='" + ahvNumber + '\'' +
+                ", documentNumber='" + documentNumber + '\'' +
                 '}';
     }
 }

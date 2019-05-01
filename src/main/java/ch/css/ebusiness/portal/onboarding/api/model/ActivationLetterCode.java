@@ -1,20 +1,20 @@
 package ch.css.ebusiness.portal.onboarding.api.model;
 
 public class ActivationLetterCode {
-    private String code;
+    private String activationCode;
 
-    public String getCode() {
-        return code;
+    public String getActivationCode() {
+        return activationCode;
     }
 
-    public void setCode(String code) {
-        this.code = code;
+    public void setActivationCode(String activationCode) {
+        this.activationCode = activationCode;
     }
 
     @Override
     public String toString() {
         return "ActivationLetterCode{" +
-                "code='" + code + '\'' +
+                "activationCode='" + activationCode + '\'' +
                 '}';
     }
 }

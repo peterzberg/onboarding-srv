@@ -96,7 +96,9 @@ public class OnboardingService {
         // TODO: validate documentCode
         ensureProcessIsWaitingAtUserTask(ViewName.DOCUMENT_CODE, runningInstance);
         final Map<String, Object> variables = new HashMap<>();
-        variables.put("documentCode", documentCode);
+        variables.put("ahvNumber", documentCode.getAhvNumber());
+        variables.put("documentNumber", documentCode.getDocumentNumber());
+
         final String taskId = getActiveUserTask(onboardingId).orElseThrow(IllegalStateException::new).getId();
         taskService.complete(taskId, variables);
         return info(onboardingId);
@@ -108,7 +110,7 @@ public class OnboardingService {
         // TODO: validate activation letter
         ensureProcessIsWaitingAtUserTask(ViewName.ACTIVATION_LETTER, runningInstance);
         final Map<String, Object> variables = new HashMap<>();
-        variables.put("activationLetterCode", activationLetterCode.getCode());
+        variables.put("activationCode", activationLetterCode.getActivationCode());
         final String taskId = getActiveUserTask(onboardingId).orElseThrow(IllegalStateException::new).getId();
         taskService.complete(taskId, variables);
         return info(onboardingId);
