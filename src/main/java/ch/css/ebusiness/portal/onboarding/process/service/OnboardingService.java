@@ -2,8 +2,10 @@ package ch.css.ebusiness.portal.onboarding.process.service;
 
 import ch.css.ebusiness.portal.onboarding.api.model.*;
 import ch.css.ebusiness.portal.onboarding.process.ViewName;
+import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.TaskService;
+import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.task.Task;
 import org.slf4j.Logger;
@@ -20,11 +22,13 @@ public class OnboardingService {
 
     private final RuntimeService runtimeService;
     private final TaskService taskService;
+    private final HistoryService historyService;
 
-    public OnboardingService(final RuntimeService runtimeService, final TaskService taskService) {
+    public OnboardingService(final RuntimeService runtimeService, final TaskService taskService, final HistoryService historyService) {
 
         this.runtimeService = runtimeService;
         this.taskService = taskService;
+        this.historyService = historyService;
     }
 
     public String start() {
@@ -39,8 +43,34 @@ public class OnboardingService {
         final Optional<ProcessInstance> runningProcessInstance = getRunningInstance(onboardingId);
         if (runningProcessInstance.isPresent()) {
             final OnboardingInfo info = new OnboardingInfo();
+            info.setEnded(false);
             info.setId(onboardingId);
             info.setVariables(runtimeService.getVariables(onboardingId));
+            final Optional<ViewName> currentStep = determineCurrentViewName(onboardingId);
+            currentStep.ifPresent(viewName -> info.setCurrentStep(viewName.getViewId()));
+            return Optional.of(info);
+        }
+        return Optional.empty();
+
+    }
+
+    private Optional<OnboardingInfo> info(final String onboardingId, boolean withHistory) {
+        final Optional<OnboardingInfo> activeInfo = info(onboardingId);
+        if (activeInfo.isPresent()){
+            return activeInfo;
+        } else if (!withHistory){
+            return Optional.empty();
+        }
+        return history(onboardingId);
+    }
+
+    private Optional<OnboardingInfo> history(final String onboardingId) {
+
+        final Optional<HistoricProcessInstance> historyInstance = getHistoryInstance(onboardingId);
+        if (historyInstance.isPresent()) {
+            final OnboardingInfo info = new OnboardingInfo();
+            info.setEnded(true);
+            info.setId(onboardingId);
             final Optional<ViewName> currentStep = determineCurrentViewName(onboardingId);
             currentStep.ifPresent(viewName -> info.setCurrentStep(viewName.getViewId()));
             return Optional.of(info);
@@ -52,6 +82,12 @@ public class OnboardingService {
     private Optional<ProcessInstance> getRunningInstance(final String onboardingId) {
 
         final ProcessInstance runningInstance = runtimeService.createProcessInstanceQuery().processInstanceId(onboardingId).singleResult();
+        return Optional.ofNullable(runningInstance);
+    }
+
+    private Optional<HistoricProcessInstance> getHistoryInstance(final String onboardingId) {
+
+        final HistoricProcessInstance runningInstance = historyService.createHistoricProcessInstanceQuery().processInstanceId(onboardingId).singleResult();
         return Optional.ofNullable(runningInstance);
     }
 
@@ -101,7 +137,7 @@ public class OnboardingService {
 
         final String taskId = getActiveUserTask(onboardingId).orElseThrow(IllegalStateException::new).getId();
         taskService.complete(taskId, variables);
-        return info(onboardingId);
+        return info(onboardingId, true);
     }
 
     public Optional<OnboardingInfo> activationLetterConfirmed(String onboardingId, ActivationLetterCode activationLetterCode) {

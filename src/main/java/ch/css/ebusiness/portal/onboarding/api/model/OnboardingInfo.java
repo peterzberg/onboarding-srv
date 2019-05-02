@@ -6,6 +6,7 @@ public class OnboardingInfo {
     private String id;
     private Map<String, Object> variables;
     private String currentStep;
+    private boolean ended = false;
 
     public String getId() {
         return id;
@@ -23,12 +24,21 @@ public class OnboardingInfo {
         this.variables = variables;
     }
 
+    public boolean isEnded() {
+        return ended;
+    }
+
+    public void setEnded(boolean ended) {
+        this.ended = ended;
+    }
+
     @Override
     public String toString() {
         return "OnboardingInfo{" +
                 "id='" + id + '\'' +
                 ", variables=" + variables +
                 ", currentStep='" + currentStep + '\'' +
+                ", ended=" + ended +
                 '}';
     }
 
