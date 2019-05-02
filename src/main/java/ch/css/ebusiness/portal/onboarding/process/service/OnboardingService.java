@@ -39,6 +39,21 @@ public class OnboardingService {
     }
 
     public Optional<OnboardingInfo> info(final String onboardingId) {
+        return info(onboardingId, false);
+
+    }
+
+    private Optional<OnboardingInfo> info(final String onboardingId, boolean withHistory) {
+        final Optional<OnboardingInfo> activeInfo = getActiveProcessInfo(onboardingId);
+        if (activeInfo.isPresent()){
+            return activeInfo;
+        } else if (!withHistory){
+            return Optional.empty();
+        }
+        return getHistoricProcessInfo(onboardingId);
+    }
+
+    private Optional<OnboardingInfo> getActiveProcessInfo(final String onboardingId) {
 
         final Optional<ProcessInstance> runningProcessInstance = getRunningInstance(onboardingId);
         if (runningProcessInstance.isPresent()) {
@@ -54,17 +69,7 @@ public class OnboardingService {
 
     }
 
-    private Optional<OnboardingInfo> info(final String onboardingId, boolean withHistory) {
-        final Optional<OnboardingInfo> activeInfo = info(onboardingId);
-        if (activeInfo.isPresent()){
-            return activeInfo;
-        } else if (!withHistory){
-            return Optional.empty();
-        }
-        return history(onboardingId);
-    }
-
-    private Optional<OnboardingInfo> history(final String onboardingId) {
+    private Optional<OnboardingInfo> getHistoricProcessInfo(final String onboardingId) {
 
         final Optional<HistoricProcessInstance> historyInstance = getHistoryInstance(onboardingId);
         if (historyInstance.isPresent()) {
@@ -112,7 +117,7 @@ public class OnboardingService {
         variables.put("birthdate", userValidation.getBirthdate());
         final String taskId = getActiveUserTask(onboardingId).orElseThrow(IllegalStateException::new).getId();
         taskService.complete(taskId, variables);
-        return info(onboardingId);
+        return info(onboardingId, true);
     }
 
     public Optional<OnboardingInfo> registrationOptionChosen(final String onboardingId, final RegistrationOptionWrapper option) {
@@ -123,7 +128,7 @@ public class OnboardingService {
         variables.put("registrationType", option.getOption().getType());
         final String taskId = getActiveUserTask(onboardingId).orElseThrow(IllegalStateException::new).getId();
         taskService.complete(taskId, variables);
-        return info(onboardingId);
+        return info(onboardingId, true);
     }
 
     public Optional<OnboardingInfo> documentCodeEntered(final String onboardingId, final DocumentCode documentCode) {
@@ -149,7 +154,7 @@ public class OnboardingService {
         variables.put("activationCode", activationLetterCode.getActivationCode());
         final String taskId = getActiveUserTask(onboardingId).orElseThrow(IllegalStateException::new).getId();
         taskService.complete(taskId, variables);
-        return info(onboardingId);
+        return info(onboardingId, true);
     }
 
     private void ensureProcessIsWaitingAtUserTask(final ViewName expectedViewName, final ProcessInstance processInstance) {
